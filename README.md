@@ -1,2 +1,0 @@
-# SysMonitorApplication
-heloo team!!!!!
