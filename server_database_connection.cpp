@@ -2,7 +2,10 @@
 #include <memory>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 #include "json-1.hpp"
 #include <sstream>
 #include <stdexcept>
@@ -24,7 +27,11 @@ namespace websocket = boost::beast::websocket;
 class DatabaseManager
 {
 public:
+<<<<<<< Updated upstream
     void insertData(double cpuUtilization, double hddUtilization, double ramUsage, int rxPackets, double systemIdleTime, const string &systemName, int txPackets)
+=======
+    void insertData(double cpuUtilization, double hddUtilization, double ramUsage, int rxPackets, double systemIdleTime, const string &systemName)
+>>>>>>> Stashed changes
     {
         try
         {
@@ -36,7 +43,11 @@ public:
             std::auto_ptr<sql::Connection> con(driver->connect(url, user, pass));
             con->setSchema(database);
             sql::PreparedStatement *pstmt;
+<<<<<<< Updated upstream
             pstmt = con->prepareStatement("INSERT INTO System_Info (CPU_UTILIZATION, HDD_UTILILZATION, RAM_USAGE, RX_PACKETS, SYSTEM_IDLE_TIME, SYSTEM_NAME, TX_PACKETS) VALUES (?, ?, ?, ?, ?, ?, ?)");
+=======
+            pstmt = con->prepareStatement("INSERT INTO System_Information (CPU_UTILIZATION, HDD_UTILILZATION, RAM_USAGE, RX_PACKETS, SYSTEM_IDLE_TIME, SYSTEM_NAME) VALUES (?, ?, ?, ?, ?, ?)");
+>>>>>>> Stashed changes
 
             pstmt->setDouble(1, cpuUtilization);
             pstmt->setDouble(2, hddUtilization);
@@ -44,7 +55,11 @@ public:
             pstmt->setInt(4, rxPackets);
             pstmt->setDouble(5, systemIdleTime);
             pstmt->setString(6, systemName);
+<<<<<<< Updated upstream
             pstmt->setInt(7, txPackets);
+=======
+            //pstmt->setInt(7, txPackets);
+>>>>>>> Stashed changes
 
             pstmt->execute();
             delete pstmt;
@@ -133,6 +148,7 @@ private:
 
         try
         {
+<<<<<<< Updated upstream
 
         json jsonData = json::parse(message);
 
@@ -145,11 +161,24 @@ private:
         string systemName = jsonData["system_name"];
         int txPackets = jsonData["tx_packets"];
                        cout << "System Name: " << systemName;
+=======
+            json jsonData = json::parse(message);
+            // Access the individual fields
+            double cpuUtilization = jsonData["cpu_utilization"];
+            double hddUtilization = jsonData["hdd_utilization"];
+            double ramUsage = jsonData["ram_usage"];
+            int rxPackets = jsonData["rx_packets"];
+            double systemIdleTime = jsonData["system_idle_time"];
+            string systemName = jsonData["system_name"];
+            //int txPackets = jsonData["tx_packets"];
+            cout << "System Name: " << systemName;
+>>>>>>> Stashed changes
             cout << "CPU Utilization: " << cpuUtilization << "%" << endl;
             cout << "RAM Usage: " << ramUsage << " MB" << endl;
             cout << "System Idle Time: " << systemIdleTime << " seconds" << endl;
             cout << "HDD Utilization: " << hddUtilization << "%" << endl;
             cout << "Recieved Packets: " << rxPackets << endl;
+<<<<<<< Updated upstream
             cout << "Transmitted Packets: " << txPackets << endl;// Convert to string if needed
             //  Insert data into the database
             db_manager.insertData(cpuUtilization, hddUtilization, ramUsage, rxPackets, systemIdleTime, systemName, txPackets);
@@ -157,17 +186,26 @@ private:
             //} else {
             // cerr << "Invalid data format" << endl;
             //}
+=======
+            //  Insert data into the database
+            db_manager.insertData(cpuUtilization, hddUtilization, ramUsage, rxPackets, systemIdleTime, systemName);
+        }
+>>>>>>> Stashed changes
         catch (const exception &e)
         {
             cerr << "Exception: " << e.what() << endl;
         }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
         // Clear the buffer and start a new read operation
         buffer_.consume(buffer_.size());
         doRead();
     }
 };
 
+<<<<<<< Updated upstream
     // The WebSocketServer and main function remain the same as in your original code
     class WebSocketServer
     {
@@ -215,3 +253,51 @@ private:
 
         return 0;
     }
+=======
+// The WebSocketServer and main function remain the same as in your original code
+class WebSocketServer
+{
+private:
+    boost::asio::io_context &io_context_;
+    tcp::acceptor acceptor_;
+
+public:
+    WebSocketServer(boost::asio::io_context &io_context, short port)
+        : io_context_(io_context), acceptor_(io_context, tcp::endpoint(tcp::v4(), port)) {}
+
+    void startAccept()
+    {
+        acceptor_.async_accept(
+            [this](boost::beast::error_code ec, tcp::socket socket)
+            {
+                if (!ec)
+                {
+                    make_shared<ClientHandler>(move(socket))->start();
+                }
+                startAccept();
+            });
+    }
+};
+
+int main()
+{
+    try
+    {
+        boost::asio::io_context io_context;
+
+        const short port = 8080;
+        WebSocketServer server(io_context, port);
+        server.startAccept();
+
+        cout << "Server listening on port " << port << "..." << endl;
+        cout << endl;
+
+        io_context.run();
+    }
+    catch (const exception &e)
+    {
+        cerr << "Exception: " << e.what() << endl;
+    }
+    return 0;
+}
+>>>>>>> Stashed changes
