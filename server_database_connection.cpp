@@ -127,10 +127,22 @@ private:
             return;
         }
 
+
+        auto now = std::chrono::system_clock::now();
+        std::time_t timestamp = std::chrono::system_clock::to_time_t(now);
+        std::tm tm = *std::localtime(&timestamp);
+
+        // Format the timestamp as a string
+        std::stringstream ss;
+        ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+        std::string timestampStr = ss.str();
+
+
         // Echo the received message back to the client
         string message = boost::beast::buffers_to_string(buffer_.data());
-        cout << endl
-             << "Received message from " << remote_endpoint_ << ": " << message << endl;
+        cout << endl << "Received message from " << remote_endpoint_ << endl;
+
+        cout << timestampStr << endl;
 
         try
         {
