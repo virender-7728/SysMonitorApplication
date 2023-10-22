@@ -5,7 +5,7 @@
 #include "json-1.hpp"
 #include <sstream>
 #include <stdexcept>
-#include "mysql_connection.h"
+#include <mysql_connection.h>
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
 #include <cppconn/resultset.h>
@@ -13,9 +13,9 @@
 #include <cppconn/prepared_statement.h>
 #include <fstream>
 #define EXAMPLE_HOST "localhost"
-#define EXAMPLE_USER "ishjain"
-#define EXAMPLE_PASS "Vmboxlinux@2023"
-#define EXAMPLE_DB "SystemMonitor"
+#define EXAMPLE_USER "Virender"
+#define EXAMPLE_PASS "password"
+#define EXAMPLE_DB "systeminfo"
 using namespace std;
 using json = nlohmann::json;
 using tcp = boost::asio::ip::tcp;
@@ -33,10 +33,10 @@ public:
             const string pass = EXAMPLE_PASS;
             const string database = EXAMPLE_DB;
             sql::Driver *driver = get_driver_instance();
-            std::auto_ptr<sql::Connection> con(driver->connect(url, user, pass));
+            std::unique_ptr<sql::Connection> con(driver->connect(url, user, pass));
             con->setSchema(database);
             sql::PreparedStatement *pstmt;
-            pstmt = con->prepareStatement("INSERT INTO System_Information_2 (TIME_STAMP, CPU_UTILIZATION, HDD_UTILILZATION, RAM_USAGE, RX_PACKETS, SYSTEM_IDLE_TIME,SYSTEM_NAME) VALUES (?, ?, ?, ?, ?, ?,?)");
+            pstmt = con->prepareStatement("INSERT INTO System_Information_2 (TIME_STAMP, CPU_UTILIZATION, HDD_UTILIZATION, RAM_USAGE, RX_PACKETS, SYSTEM_IDLE_TIME,SYSTEM_NAME) VALUES (?, ?, ?, ?, ?, ?,?)");
 
             pstmt->setString(1, timeStampStr);
             pstmt->setDouble(2, cpuUtilization);
@@ -123,16 +123,29 @@ private:
         {
             if (csvFile.tellp() == 0)
             {
-                csvFile << "System Name,CPU Utilization,Hdd Utilization,RAM Usage,RX Packets,System Idle Window" << endl; // Add your column names here
+                csvFile << "Time Stamp,CPU Utilization,HDD Utilization,RAM Usage,RX Packets,System Idle Window,System Name" << endl; // Add your column names here
             }
-            csvFile << data["system_name"] << "," << data["cpu_utilization"] << "," << data["hdd_utilization"] << ","
-                    << data["ram_usage"] << "," << data["rx_packets"] << "," << data["system_idle_time"] << endl;
+
+        string systemName = data["system_name"];
+        systemName.erase(remove(systemName.begin(), systemName.end(), '\n'), systemName.end());
+
+    csvFile << data["Time_Stamp"] << "," 
+            << data["cpu_utilization"] << "," 
+            << data["hdd_utilization"] << ","
+            << data["ram_usage"] << "," 
+            << data["rx_packets"] << "," 
+            << data["system_idle_time"]  <<  "," 
+            << systemName << endl;
+
             csvFile.close();
         }
         else
         {
             cerr << "Failed to open CSV file for writing." << std::endl;
         }
+
+
+        
     }
 
     void onRead(boost::beast::error_code ec, size_t)
@@ -179,6 +192,8 @@ private:
             cout << "System Idle Time: " << systemIdleTime << " seconds" << endl;
             cout << "HDD Utilization: " << hddUtilization << "%" << endl;
             cout << "Recieved Packets: " << rxPackets << endl;
+
+            jsonData["Time_Stamp"] = timestampStr;
             saveDataToCSV(jsonData);
             //  Insert data into the database
             db_manager.insertData(timestampStr, cpuUtilization, hddUtilization, ramUsage, rxPackets, systemIdleTime, systemName);
